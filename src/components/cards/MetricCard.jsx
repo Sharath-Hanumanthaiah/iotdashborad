@@ -50,6 +50,7 @@ export default function MetricCard({ title, value, format = 'number', sparklineD
   return (
     <div
       className="glass-card interactive"
+      data-testid="metric-card"
       style={styles.card}
       onClick={onClick}
     >

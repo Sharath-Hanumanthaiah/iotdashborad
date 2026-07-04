@@ -30,13 +30,10 @@ export default function Sidebar() {
                 ...(isActive ? styles.navItemActive : {})
               }}
               title={item.label}
+              aria-label={item.label}
             >
               {isActive && <div style={styles.activeIndicator} />}
               <Icon size={20} color={isActive ? 'var(--accent)' : 'var(--text-muted)'} />
-              <span style={{
-                ...styles.navLabel,
-                color: isActive ? 'var(--accent)' : 'var(--text-muted)'
-              }}>{item.label}</span>
             </button>
           );
         })}

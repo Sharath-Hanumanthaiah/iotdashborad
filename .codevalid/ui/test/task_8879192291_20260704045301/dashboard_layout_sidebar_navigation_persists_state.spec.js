@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../../../../ui_test/helpers/execution-recorder.js";
-import { setupDashboardMocks } from "../../../../ui_test/helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks } from "../../helpers/mock-api.js";
 
 test("Sidebar Navigation Items Are Always Visible and Do Not Affect Layout", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_layout_sidebar_navigation_persists_state", testInfo);
@@ -8,6 +8,7 @@ test("Sidebar Navigation Items Are Always Visible and Do Not Affect Layout", asy
   await recorder.step("Set up dashboard mocks and open dashboard");
   await setupDashboardMocks(page, { connected: true });
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
 
   await recorder.step("Verify sidebar navigation links are always visible");
   const navLabels = ["Dashboard", "Devices", "Analytics", "Alerts", "Settings"];

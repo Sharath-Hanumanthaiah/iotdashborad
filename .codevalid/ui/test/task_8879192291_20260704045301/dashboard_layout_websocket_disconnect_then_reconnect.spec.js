@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../../../../ui_test/helpers/execution-recorder.js";
-import { setupDashboardMocks, emitDashboardTick, forceDisconnect, reconnectDashboard } from "../../../../ui_test/helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks, emitDashboardTick, forceDisconnect, reconnectDashboard } from "../../helpers/mock-api.js";
 
 test("WebSocket Disconnection and Auto-Reconnection Update UI Status Correctly", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_layout_websocket_disconnect_then_reconnect", testInfo);
@@ -10,6 +10,7 @@ test("WebSocket Disconnection and Auto-Reconnection Update UI Status Correctly",
 
   await recorder.step("Navigate to dashboard and confirm initial connected state");
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
   await expect(page.getByText("LIVE", { exact: true })).toBeVisible();
   await expect(page.getByText("188")).toBeVisible();
 
@@ -30,12 +31,14 @@ test("WebSocket Disconnection and Auto-Reconnection Update UI Status Correctly",
     ingestionRate: 1260,
     sparkShift: 1,
   });
+  await page.waitForTimeout(200);
 
   await recorder.step("Verify KPI values resume updating after reconnection");
   await expect(page.getByText("191")).toBeVisible();
   await expect(page.getByText("96.7%")).toBeVisible();
   await expect(page.getByText("2")).toBeVisible();
-  await expect(page.getByText("1260")).toBeVisible();
+  // formatNumber(1260) → "1.3K"
+  await expect(page.getByText("1.3K")).toBeVisible();
 
   const canvasCount = await page.locator("canvas").count();
   expect(canvasCount).toBeGreaterThanOrEqual(4);

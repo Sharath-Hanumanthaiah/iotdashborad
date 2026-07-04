@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../../../../ui_test/helpers/execution-recorder.js";
-import { setupDashboardMocks, emitDashboardTick } from "../../../../ui_test/helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks, emitDashboardTick } from "../../helpers/mock-api.js";
 
 test("Global Time Range Filter Updates KPI Values and Sparklines Consistently", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_layout_time_range_filter_synchronizes_kpi_data", testInfo);
@@ -10,7 +10,9 @@ test("Global Time Range Filter Updates KPI Values and Sparklines Consistently", 
 
   await recorder.step("Navigate to dashboard and confirm initial KPI data");
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
   await expect(page.getByText("Active Devices", { exact: true })).toBeVisible();
+  // formatNumber(188) = "188"; initial metrics from WS shim on connect
   await expect(page.getByText("188")).toBeVisible();
 
   await recorder.step("Capture initial sparkline canvas dimensions");
@@ -21,9 +23,13 @@ test("Global Time Range Filter Updates KPI Values and Sparklines Consistently", 
 
   await recorder.step("Select an alternate global time range button");
   const timeRangeButtons = page.locator(".btn.btn-ghost");
+  // Wait for time range buttons to render
+  await expect(timeRangeButtons.first()).toBeVisible();
   const count = await timeRangeButtons.count();
   expect(count).toBeGreaterThan(1);
-  const currentActive = await page.locator(".btn.btn-ghost.active").textContent();
+  const activeBtn = page.locator(".btn.btn-ghost.active");
+  await expect(activeBtn).toBeVisible();
+  const currentActive = await activeBtn.textContent();
   for (let i = 0; i < count; i += 1) {
     const candidate = timeRangeButtons.nth(i);
     const label = (await candidate.textContent())?.trim();
@@ -42,12 +48,14 @@ test("Global Time Range Filter Updates KPI Values and Sparklines Consistently", 
     ingestionRate: 1180,
     sparkShift: 2,
   });
+  await page.waitForTimeout(300);
 
   await recorder.step("Verify KPI values update consistently across all cards");
   await expect(page.getByText("182")).toBeVisible();
   await expect(page.getByText("94.8%")).toBeVisible();
   await expect(page.getByText("5")).toBeVisible();
-  await expect(page.getByText("1180")).toBeVisible();
+  // formatNumber(1180) → "1.2K"
+  await expect(page.getByText("1.2K")).toBeVisible();
 
   await recorder.step("Verify trend indicators and sparklines remain rendered after update");
   const canvasCountAfter = await page.locator("canvas").count();

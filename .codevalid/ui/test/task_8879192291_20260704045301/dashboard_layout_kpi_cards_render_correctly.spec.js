@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../../../../ui_test/helpers/execution-recorder.js";
-import { setupDashboardMocks } from "../../../../ui_test/helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks } from "../../helpers/mock-api.js";
 
 test("KPI Cards Render with Correct Data and Sparklines on Initial Load", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_layout_kpi_cards_render_correctly", testInfo);
@@ -10,6 +10,7 @@ test("KPI Cards Render with Correct Data and Sparklines on Initial Load", async 
 
   await recorder.step("Navigate to dashboard");
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
 
   await recorder.step("Verify four KPI cards are visible");
   const cardTitles = ["Active Devices", "Success Rate", "Critical Failures", "Ingestion Rate"];
@@ -21,7 +22,8 @@ test("KPI Cards Render with Correct Data and Sparklines on Initial Load", async 
   await expect(page.getByText("188")).toBeVisible();
   await expect(page.getByText("96.2%")).toBeVisible();
   await expect(page.getByText("3")).toBeVisible();
-  await expect(page.getByText("1225")).toBeVisible();
+  // formatNumber(1225) → "1.2K" (>= 1000 threshold)
+  await expect(page.getByText("1.2K")).toBeVisible();
   await expect(page.getByText("/ 200")).toBeVisible();
   await expect(page.getByText("msg/s")).toBeVisible();
 

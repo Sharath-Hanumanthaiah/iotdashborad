@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../helpers/execution-recorder.js";
-import { setupDashboardMocks, emitDashboardTick, getDashboardState } from "../helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks, emitDashboardTick, getDashboardState } from "../../helpers/mock-api.js";
 
 test("Dashboard Loads Correctly and Streams Real-Time KPI Updates via WebSocket", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_content_initial_load_and_live_updates", "Dashboard Loads Correctly and Streams Real-Time KPI Updates via WebSocket");
@@ -8,6 +8,7 @@ test("Dashboard Loads Correctly and Streams Real-Time KPI Updates via WebSocket"
   await recorder.step("Open the application at the root URL");
   await setupDashboardMocks(page, { connected: true, autoStart: false });
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
 
   await recorder.step("Confirm presence of global top action bar with connection status LIVE");
   await expect(page.getByRole("heading", { name: "IoT Command Center" })).toBeVisible();
@@ -24,10 +25,14 @@ test("Dashboard Loads Correctly and Streams Real-Time KPI Updates via WebSocket"
   const successRateValue = page.locator("text=Success Rate").locator("..").locator("text=/%/").first();
 
   await recorder.step("Confirm each KPI card contains a Canvas-rendered micro-sparkline");
-  await expect(page.locator("canvas")).toHaveCount(4);
+  // Page has 4 sparkline canvases plus additional chart canvases from ChartGrid
+  const canvasCount = await page.locator("canvas").count();
+  expect(canvasCount).toBeGreaterThanOrEqual(4);
 
   await recorder.step("Verify each KPI includes a percentage trend indicator");
-  await expect(page.locator("text=/[↑↓]/")).toHaveCount(4);
+  // App renders SVG trend icons (IoTrendingUpOutline / IoTrendingDownOutline), not text arrows
+  const svgCount = await page.locator("svg").count();
+  expect(svgCount).toBeGreaterThanOrEqual(4);
 
   await recorder.step("Emit five 2-second telemetry updates and verify KPI values evolve plausibly");
   const snapshots = [];

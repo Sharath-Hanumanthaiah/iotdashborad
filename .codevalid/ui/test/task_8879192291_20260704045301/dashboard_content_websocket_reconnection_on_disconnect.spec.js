@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../helpers/execution-recorder.js";
-import { setupDashboardMocks, emitDashboardTick, forceDisconnect, reconnectDashboard, getDashboardState } from "../helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks, emitDashboardTick, forceDisconnect, reconnectDashboard, getDashboardState } from "../../helpers/mock-api.js";
 
 test("WebSocket Automatically Reconnects Using Exponential Backoff After Disconnection", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_content_websocket_reconnection_on_disconnect", "WebSocket Automatically Reconnects Using Exponential Backoff After Disconnection");
@@ -8,6 +8,8 @@ test("WebSocket Automatically Reconnects Using Exponential Backoff After Disconn
   await recorder.step("Open the application at the root URL");
   await setupDashboardMocks(page, { connected: true, autoStart: false });
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
+  await expect(page.getByText("LIVE")).toBeVisible();
 
   await recorder.step("Confirm connection status is LIVE and KPIs are updating");
   await emitDashboardTick(page, { activeDevices: 190, successRate: 96.1, criticalFailures: 3, ingestionRate: 1250, sparkShift: 1 });

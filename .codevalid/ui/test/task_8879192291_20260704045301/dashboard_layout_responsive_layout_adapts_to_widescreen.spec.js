@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../../../../ui_test/helpers/execution-recorder.js";
-import { setupDashboardMocks } from "../../../../ui_test/helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks } from "../../helpers/mock-api.js";
 
 test("DashboardLayout Uses Responsive CSS Grid and Flexbox to Adapt to Widescreen Layouts", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_layout_responsive_layout_adapts_to_widescreen", testInfo);
@@ -11,6 +11,7 @@ test("DashboardLayout Uses Responsive CSS Grid and Flexbox to Adapt to Widescree
 
   await recorder.step("Navigate to dashboard");
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
 
   await recorder.step("Verify sidebar remains fixed on the left");
   const dashboardButton = page.getByRole("button", { name: "Dashboard" });

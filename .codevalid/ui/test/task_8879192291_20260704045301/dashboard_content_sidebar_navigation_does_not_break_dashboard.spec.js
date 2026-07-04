@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { ExecutionRecorder } from "../helpers/execution-recorder.js";
-import { setupDashboardMocks, emitDashboardTick, getDashboardState } from "../helpers/mock-api.js";
+import { ExecutionRecorder } from "../../helpers/execution-recorder.js";
+import { setupDashboardMocks, emitDashboardTick, getDashboardState } from "../../helpers/mock-api.js";
 
 test("Sidebar Navigation Clicks Do Not Break DashboardContent or Clear State", async ({ page }, testInfo) => {
   const recorder = new ExecutionRecorder("dashboard_content_sidebar_navigation_does_not_break_dashboard", "Sidebar Navigation Clicks Do Not Break DashboardContent or Clear State");
@@ -8,6 +8,7 @@ test("Sidebar Navigation Clicks Do Not Break DashboardContent or Clear State", a
   await recorder.step("Open the application at the root URL");
   await setupDashboardMocks(page, { connected: true, autoStart: false });
   await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
   await emitDashboardTick(page, { activeDevices: 192, successRate: 97.1, criticalFailures: 2, ingestionRate: 1290, sparkShift: 4 });
   await page.waitForTimeout(200);
 
